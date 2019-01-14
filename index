@@ -1,0 +1,109 @@
+<?
+
+/*
+	$calendar = simplexml_load_file('http://xmlcalendar.ru/data/ru/'.date('Y').'/calendar.xml');
+	$calendar = $calendar->days->day;
+ 
+	//все праздники за текущий год
+	foreach( $calendar as $day ){
+		$d = (array)$day->attributes()->d;
+		$d = $d[0];
+		$d = substr($d, 3, 2).'.'.substr($d, 0, 2).'.'.date('Y');
+		//не считая короткие дни
+		if( $day->attributes()->t == 1 ) $arHolidays[] = $d;
+	}
+*/
+	
+
+	$arHolidays = array('31.12.2018', '01.01.2019', '02.01.2019', '03.01.2019', '04.01.2019', '05.01.2019', '06.01.2019', '07.01.2019', '08.01.2019');
+	$RestOfTheWorkingDay = 1;
+
+	//$tomorrow = $date->modify('+1 day');
+	$todayis = date('d') . '.' . date('m') . '.' . date('Y');
+	//$todayis = '06.01.2019';
+	
+
+	
+					/**
+					* Счетчик обратного отсчета
+					*
+					* @param mixed $date
+					* @return
+					*/
+					function downcounter($date){
+						$check_time = strtotime($date) - time();
+						if($check_time <= 0){
+							//return false;
+						}
+
+						$days = floor($check_time/86400);
+						$hours = floor(($check_time%86400)/3600);
+						$minutes = floor(($check_time%3600)/60);
+						$seconds = $check_time%60; 
+
+						$str = '';
+				
+						if(($hours < 2) and ($hours >= 0)) {
+
+						$str .= '<noindex><span class="bg-success">&nbsp;Мы закрываемся через ';
+
+							//if($days > 0) $str .= declension($days,array('день','дня','дней')).' ';						
+								if($hours > 0) $str .= declension($hours,array('час','часа','часов')).' ';
+							if($minutes > 0) $str .= declension($minutes,array('минуту','минуты','минут')).'&nbsp;</span></noindex><br /><br />';
+							//if($seconds > 0) $str .= declension($seconds,array('секунда','секунды','секунд'));						
+						} elseif ( ($hours < 0) and ($minutes < 0) ) {
+							$str .= '<noindex><span class="bg-danger">&nbsp;Закрыто. Оставляйте заявки через сайт&nbsp;</span></noindex><br /><br />';
+						} else {
+								$str = '';							
+						}
+
+						return $str;
+					}
+
+					/**
+					* Функция склонения слов
+					*
+					* @param mixed $digit
+					* @param mixed $expr
+					* @param bool $onlyword
+					* @return
+					*/
+					function declension($digit,$expr,$onlyword=false){
+						if (!is_array($expr)) $expr = array_filter(explode(' ', $expr));
+						if (empty($expr[2])) $expr[2]=$expr[1];
+						$i=preg_replace('/[^0-9]+/s','',$digit)%100;
+						if ($onlyword) $digit='';
+						if($i>=5 && $i<=20) {
+							$res=$digit.' '.$expr[2]; 
+						} else {
+							$i%=10;
+							if($i==1) {
+								$res=$digit.' '.$expr[0];
+							} elseif($i>=2 && $i<=4) {
+								$res=$digit.' '.$expr[1];
+							} else {
+								$res=$digit.' '.$expr[2];
+							}
+						}
+						return trim($res);
+					}
+					
+			if (in_array($todayis, $arHolidays)) {
+				//сегодня праздничный день, и мы не работаем
+				$markerday = 'holiday';
+			} elseif (date('w') == 0 || date('w') == 6) {
+				//сегодня выходной
+				$markerday = 'freeday';
+			} elseif (date('w') == 5) {
+				//сегодня пятница
+				$markerday = 'friday';
+				$RestOfTheWorkingDay = downcounter(date('Y') . '-' . date('m') . '-' . date('d') . ' 16:59:59');
+				//echo downcounter(date('Y') . '-' . date('m') . '-' . date('d') . ' 16:59:59');						
+			} else {
+				$markerday = 'workingday';
+				$RestOfTheWorkingDay = downcounter(date('Y') . '-' . date('m') . '-' . date('d') . ' 18:29:59');	
+				//$RestOfTheWorkingDay = downcounter('2018-03-05 18:29:59');	
+				//echo downcounter(date('Y') . '-' . date('m') . '-' . date('d') . ' 18:29:59');
+			}
+
+		
